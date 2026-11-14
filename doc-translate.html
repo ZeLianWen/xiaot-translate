@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>小T翻译 - 文档翻译</title>
+  <script src="lib/pdf.min.js"></script>
+  <link rel="stylesheet" href="content.css">
+  <style>
+    :root {
+      --accent: #07c160;
+      --accent-hover: #06ae56;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f6f6f6;
+      color: #181818;
+      min-height: 100vh;
+    }
+    .topbar {
+      background: #ededed;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #d9d9d9;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #181818;
+    }
+    .topbar h1 img {
+      vertical-align: middle;
+      margin-right: 6px;
+      width: 20px;
+      height: 20px;
+    }
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .topbar-actions select {
+      padding: 4px 8px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      background: #fff;
+      color: #181818;
+      font-size: 12px;
+      outline: none;
+    }
+    /* 选中即译开关 (V1.7.80): 勾选后原文选中文字直接弹出译文, 无需再点「译」 */
+    .sel-auto-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #666;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    .sel-auto-toggle input { margin: 0; cursor: pointer; }
+    .btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-primary:disabled {
+      background: #b2b2b2;
+      cursor: not-allowed;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    .btn-outline:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .upload-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      min-height: calc(100vh - 52px);
+      padding: 40px 20px;
+    }
+    .upload-sidebar {
+      width: 180px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .sidebar-title {
+      font-size: 12px;
+      color: #999;
+      padding: 6px 12px 8px;
+      font-weight: 500;
+    }
+    .type-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #181818;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .type-item:hover {
+      background: #f0f0f0;
+    }
+    .type-item.active {
+      background: #f0fdf4;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .sidebar-divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 10px 6px;
+    }
+    .upload-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
+    .history-panel {
+      display: none;
+      width: 100%;
+      max-width: 640px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .history-actions {
+      display: flex;
+      gap: 8px;
+    }
+    /* 历史用量范围切换 (V1.7.14): 今天/昨天/本周/本月 pill 按钮 */
+    .usage-range-btn {
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      border-radius: 14px;
+      padding: 3px 10px;
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .usage-range-btn:hover { border-color: #07c160; color: #07c160; }
+    .usage-range-btn.active { background: #07c160; border-color: #07c160; color: #fff; }
+    /* 权益对比表 (V1.7.28): 免费 / Pro 功能对照 */
+    .plan-current {
+      font-size: 12px;
+      color: #07c160;
+      background: #e8f8ee;
+      border-radius: 10px;
+      padding: 3px 10px;
+    }
+    .plan-note, .plan-foot {
+      font-size: 12px;
+      color: #8c8c8c;
+      padding: 10px 4px 4px;
+      line-height: 1.6;
+    }
+    .plan-foot { padding: 8px 4px 12px; }
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .plan-table th, .plan-table td {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 10px 12px;
+      font-size: 13px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    .plan-table th {
+      background: #f7f9f8;
+      color: #595959;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .plan-table th:nth-child(2), .plan-table td:nth-child(2),
+    .plan-table th:nth-child(3), .plan-table td:nth-child(3) {
+      width: 84px;
+      text-align: center;
+    }
+    .plan-table td.yes { color: #07c160; font-weight: 600; }
+    .plan-table td.no { color: #d9d9d9; }
+    .plan-table td.quota { color: #595959; font-size: 12px; }
+    .plan-table tbody tr:last-child td { border-bottom: none; }
+    .plan-table tbody tr:hover { background: #fafdfb; }
+    /* 分组标题行 + 定价卡片 (V1.7.68) */
+    .plan-table tr.plan-group td {
+      background: #f7f9f8;
+      color: #07a050;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 12px;
+      letter-spacing: .2px;
+    }
+    .plan-table tr.plan-group:hover td { background: #f7f9f8; }
+    .plan-price {
+      margin: 12px 0 4px;
+      padding: 14px 16px;
+      border: 1px solid #07c160;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f4fdf8, #ffffff);
+    }
+    .plan-price-head { display: flex; align-items: baseline; gap: 8px; }
+    .plan-price-amount { font-size: 26px; font-weight: 700; color: #111; }
+    .plan-price-unit { font-size: 13px; color: #8c8c8c; }
+    .plan-price-sub { font-size: 12px; color: #07a050; margin-top: 2px; }
+    .plan-price-list { margin: 10px 0 12px; padding-left: 18px; }
+    .plan-price-list li { font-size: 12px; color: #595959; line-height: 1.9; }
+    .plan-buy { width: 100%; padding: 9px 0; font-size: 13px; }
+
+    /* 历史用量直方图 (V1.7.15): x=日期 y=用量, 纯 CSS 堆叠柱, 零依赖 */
+    .usage-chart-head { display: flex; justify-content: flex-end; font-size: 11px; color: #aaa; }
+    .usage-chart { display: flex; align-items: flex-end; gap: 2px; height: 132px; padding-top: 4px; }
+    .usage-bar-col { flex: 1; min-width: 0; display: flex; align-items: flex-end; justify-content: center; height: 100%; }
+    .usage-bar {
+      width: 68%;
+      max-width: 28px;
+      display: flex;
+      flex-direction: column-reverse;
+      border-radius: 3px 3px 0 0;
+      overflow: hidden;
+      min-height: 2px;
+    }
+    .usage-bar.empty { height: 3px; background: #ececec; }
+    .usage-bar i { display: block; width: 100%; }
+    .usage-chart-x { display: flex; gap: 2px; margin-top: 3px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+    .usage-chart-x span { flex: 1; min-width: 0; text-align: center; font-size: 9px; color: #999; line-height: 1; white-space: nowrap; }
+    .history-search {
+      margin-bottom: 10px;
+    }
+    .history-search input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      background: #fafafa;
+    }
+    .history-search input:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+    /* 命中来源环形饼图 (V1.5.43): conic-gradient 按字数占比切环, 零依赖无图表库 */
+    .history-stats {
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1px solid #f0f0f0;
+      border-radius: 10px;
+      background: #fafafa;
+      font-size: 12px;
+    }
+    .hs-title {
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .hs-body {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .hs-donut {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .hs-hole {
+      position: absolute;
+      inset: 18px;
+      background: #fafafa;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.25;
+      color: #333;
+    }
+    .hs-hole b {
+      font-size: 12px;
+    }
+    .hs-hole span {
+      font-size: 11px;
+      color: #999;
+    }
+    .hs-legend {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+    }
+    .hs-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #555;
+    }
+    .hs-row i {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .hs-row b {
+      margin-left: auto;
+      font-weight: 500;
+      color: #333;
+      white-space: nowrap;
+    }
+    .history-list {
+      overflow-y: auto;
+      max-height: 60vh;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 8px;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .history-item:hover {
+      background: #fafafa;
+    }
+    .history-item .h-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .history-item .h-name {
+      font-size: 13px;
+      color: #181818;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .history-item .h-meta {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+    .history-del {
+      border: none;
+      background: none;
+      color: #b2b2b2;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .history-del:hover {
+      background: #fdecec;
+      color: #e11d48;
+    }
+    .history-empty {
+      text-align: center;
+      color: #b2b2b2;
+      padding: 30px 0;
+      font-size: 13px;
+    }
+    .history-item .h-detail {
+      flex-basis: 100%;
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+    }
+    .history-item .h-detail .h-src {
+      color: #666;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .history-item .h-detail .h-dst {
+      color: #181818;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #e5e5e5;
+    }
+    .history-pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 0 2px;
+      font-size: 12px;
+      color: #666;
+      flex-wrap: wrap;
+    }
+    .history-pager button {
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      border-radius: 6px;
+      min-width: 28px;
+      height: 26px;
+      padding: 0 8px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #333;
+    }
+    .history-pager button:hover:not(:disabled) {
+      background: #f5f5f5;
+    }
+    .history-pager button:disabled {
+      color: #ccc;
+      cursor: default;
+      background: #fafafa;
+    }
+    .history-pager button.pg-cur {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      cursor: default;
+    }
+    .upload-box {
+      width: 400px;
+      max-width: 90vw;
+      padding: 60px 40px;
+      background: #fff;
+      border: 2px dashed #d9d9d9;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .upload-box:hover, .upload-box.dragover {
+      border-color: var(--accent);
+      background: #f0fdf4;
+    }
+    .upload-box .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .upload-box p {
+      font-size: 14px;
+      color: #888;
+      margin-top: 8px;
+    }
+    .upload-box .title {
+      font-size: 16px;
+      color: #181818;
+      font-weight: 500;
+    }
+    /* 翻译耗时与吞吐 (V1.7.26): 翻译完成后显示「用时 X s · 平均 N 字/秒」 */
+    .translate-time {
+      font-size: 12px;
+      color: #607d8b;
+      background: #f1f5f4;
+      border-radius: 10px;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+    .translate-time:empty { display: none; }
+
+    .topbar-progress {
+      background: #ededed;
+      padding: 0 20px 10px;
+      border-bottom: 1px solid #d9d9d9;
+      display: none;
+    }
+    .topbar-progress .bar {
+      height: 4px;
+      background: #e5e5e5;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .topbar-progress .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width .3s;
+      width: 0%;
+    }
+    .topbar-progress .info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .doc-view {
+      display: none;
+      padding: 0;
+      height: calc(100vh - 52px);
+    }
+    .split-container {
+      display: flex;
+      height: 100%;
+    }
+    .split-pane {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 6px;
+    }
+    .split-pane-left {
+      border-right: 1px solid #e5e5e5;
+      background: #fafafa;
+    }
+    .split-pane-right {
+      background: #fff;
+    }
+    /* 左右页在中间紧贴 (V1.7.52): 多余空间推到屏幕外侧, 中间只留 12px + 分隔线 */
+    .split-pane-left .pane-scroll-content { align-items: flex-end; }
+    .split-pane-right .pane-scroll-content { align-items: flex-start; }
+    /* 放大后页面比栏宽 (V1.7.84): 右对齐会让原文页溢出到左侧, 而 LTR 下起始侧溢出不可滚动
+       (会被裁掉、拖动滚动条也看不到)。auto 外边距在有空间时等价右对齐, 溢出时归零 →
+       页面改为从左边缘开始, 横向滚动条能拖到整页内容 */
+    .split-pane-left .pane-scroll-content > .pdf-page-container { margin-left: auto; }
+    /* 左栏纵向滚动条隐藏 (滚轮/同步滚动保留), 避免两条滚动条夹在两页中间;
+       横向滚动条必须保留 (V1.7.84): 浏览器缩放后页面 CSS 宽度大于栏宽, 原生查看器同样出现
+       横向滚动, 此前 width/height 全置 0 导致原文区无法横向拖动、译文却能, 两栏行为不一致 */
+    /* 注意: 不能再用 scrollbar-width: none —— Chrome 支持该属性后会覆盖 ::-webkit-scrollbar,
+       横向滚动条会被一并隐藏 (V1.7.84)。这里只用 webkit 伪元素按轴控制宽度。 */
+    .split-pane-left::-webkit-scrollbar { width: 0; height: 10px; }
+    .split-pane-left::-webkit-scrollbar-thumb { background: #d5d5d5; border-radius: 5px; }
+    .split-pane-left::-webkit-scrollbar-track { background: transparent; }
+    /* 右栏保留一条细滚动条 (页面最右侧), 宽度固定便于按栏宽精确适配; 横向同为 10px */
+    .split-pane-right::-webkit-scrollbar { width: 10px; height: 10px; }
+    .split-pane-right::-webkit-scrollbar-thumb { background: #d5d5d5; border-radius: 5px; }
+    .split-pane-right::-webkit-scrollbar-track { background: transparent; }
+    .pane-header {
+      position: sticky;
+      top: 0;
+      background: inherit;
+      padding: 8px 0 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #999;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 12px;
+      z-index: 1;
+    }
+    .pane-scroll-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 20px;
+    }
+    .canvas-page-label {
+      font-size: 11px;
+      color: #b2b2b2;
+      padding: 6px 0 4px;
+      font-weight: 500;
+      width: 100%;
+      text-align: center;
+      background: #fafafa;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .pdf-page-container {
+      position: relative;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .pdf-canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    /* 与 pdf.js 3.11 官方 viewer.css 保持一致:
+       :is(span,br) 必须匹配所有后代 span (markedContent 会嵌套包裹文字, 仅匹配直接子级会导致相应文字无法选中);
+       ::selection 用纯色, 经层 opacity 0.25 后呈现接近原生 PDF 的浅蓝高亮 */
+    .textLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      opacity: 0.25;
+      line-height: 1;
+      text-size-adjust: none;
+      forced-color-adjust: none;
+      transform-origin: 0 0;
+      z-index: 2;
+      user-select: text;
+    }
+    .textLayer :is(span, br) {
+      color: transparent;
+      position: absolute;
+      white-space: pre;
+      cursor: text;
+      transform-origin: 0% 0%;
+      user-select: text;
+    }
+    .textLayer span.markedContent {
+      top: 0;
+      height: 0;
+    }
+    .textLayer .endOfContent {
+      display: block;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      cursor: default;
+      user-select: none;
+    }
+    .textLayer .endOfContent.active {
+      top: 0;
+    }
+    .textLayer ::selection {
+      background: blue;
+    }
+    .translated-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+    }
+    .translated-para {
+      color: #181818;
+      user-select: text;
+      cursor: text;
+      word-break: break-word;
+      text-align: justify;
+      line-height: 1.25;
+    }
+    .translated-para ::selection {
+      background: rgba(7, 193, 96, 0.3);
+    }
+    /* 朗读位置提示 (V1.7.34): 当前句高亮 + 当前段落左侧色条 */
+    .translated-para.tts-active {
+      box-shadow: -3px 0 0 0 #07c160;
+      padding-left: 6px;
+      margin-left: -6px;
+      transition: box-shadow .2s;
+    }
+    mark.tts-mark {
+      background: #fff1a8;
+      color: inherit;
+      border-radius: 3px;
+      padding: 0 1px;
+      box-shadow: 0 0 0 1px rgba(255, 193, 7, .35) inset;
+    }
+    .translated-error {
+      color: #e11d48;
+      font-style: italic;
+    }
+    #fileInput { display: none; }
+    /* 划词翻译浮标/浮窗: 本页面板内部滚动, 使用 fixed 定位 (覆盖 content.css 的 absolute) */
+    .vt-sel-btn, .vt-sel-popup { position: fixed; }
+    /* 译文批注: 浮标 / 高亮 / 批注卡片 / 编辑器 */
+    .vt-anno-btn {
+      position: fixed;
+      display: none;
+      padding: 0 12px;
+      height: 26px;
+      line-height: 26px;
+      border-radius: 13px;
+      background: #faad14;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      z-index: 2147483646;
+    }
+    .vt-anno-btn.vt-visible { display: block; }
+    .vt-anno-btn:hover { background: #d99a0b; }
+    .vt-anno-mark {
+      background: rgba(250, 173, 20, 0.35);
+      color: inherit;
+      padding: 0 1px;
+      border-radius: 2px;
+    }
+    .vt-anno-note {
+      position: absolute;
+      max-width: 260px;
+      max-height: 240px;
+      overflow-y: auto;
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #614700;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      z-index: 10;
+      cursor: default;
+    }
+    .vt-anno-note-del {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      color: #bbb;
+      font-size: 11px;
+      cursor: pointer;
+      user-select: none;
+      padding: 2px;
+    }
+    .vt-anno-note-del:hover { color: #e11d48; }
+    .vt-anno-note-text { padding-right: 14px; word-break: break-word; white-space: pre-wrap; }
+    /* 批注侧栏: 独立于译文窗口之外的右侧固定栏, 卡片纵向对齐各自高亮行, 不遮挡译文;
+       有批注时出现 (body.vt-anno-rail-open 让译文窗口整体右移让出空间) */
+    .vt-anno-rail {
+      position: fixed;
+      top: 52px;
+      right: 0;
+      bottom: 0;
+      width: 284px;
+      background: #fafafa;
+      border-left: 1px solid #e5e5e5;
+      overflow: hidden;
+      display: none;
+      z-index: 50;
+    }
+    .vt-anno-rail.vt-visible { display: block; }
+    body.vt-anno-rail-open .doc-view { padding-right: 284px; }
+    .vt-anno-rail .vt-anno-note {
+      left: 10px;
+      right: 10px;
+      max-width: none;
+      max-height: calc(100vh - 92px);
+    }
+    /* 分享译文弹窗 (V1.7.59 改非模态浮窗): 遮罩不再压暗/拦截事件, 底部主页面可滚动/选中文本;
+       弹窗本体 pointer-events: auto 保证表单可用; 关闭仅靠右上角 X 或「取消」(V1.7.54 已去 Esc/点遮罩关闭) */
+    .share-dialog-mask {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 2147483647;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .share-dialog-mask.vt-visible { display: flex; }
+    .share-dialog {
+      width: 360px;
+      max-width: calc(100vw - 32px);
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      pointer-events: auto;
+    }
+    .share-dialog-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    /* 弹窗标题行 + 右上角关闭 X (V1.7.54): 只有点 X/取消才关闭, 点遮罩与 Esc 不再误关 */
+    .dialog-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; cursor: move; }
+    .dialog-title-row .share-dialog-title { margin-bottom: 0; }
+    .dialog-close {
+      border: none;
+      background: none;
+      font-size: 16px;
+      line-height: 1;
+      color: #999;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-family: inherit;
+      flex: none;
+    }
+    .dialog-close:hover { background: #f2f2f2; color: #333; }
+    .share-dialog-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+    .share-dialog-label { font-size: 13px; color: #666; width: 34px; flex: none; }
+    /* TTS 导出表单输入 (V1.7.35) */
+    .tts-input {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+      padding: 7px 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-family: inherit;
+      outline: none;
+    }
+    .tts-input:focus { border-color: #07c160; }
+    /* TTS 来源切换 (V1.7.37): 服务端 Pro / 自定义接口 */
+    .tts-modes { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+    .tts-mode {
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      color: #555;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .tts-mode.active { border-color: #07c160; background: #e8f8ee; color: #07a352; font-weight: 600; }
+    .share-opt { font-size: 13px; color: #181818; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    .share-opt input { cursor: pointer; }
+    .share-dialog-tip {
+      font-size: 12px;
+      color: #999;
+      line-height: 1.5;
+      margin: 6px 0 16px;
+      padding-top: 10px;
+      border-top: 1px dashed #f0f0f0;
+    }
+    .share-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    /* AI 对话弹窗 (V1.7.12, 微信式): 左=机器人(品牌头像+模型名) 右=小T(插件头像); 引擎切换/模型配置沿用 */
+    .ai-dialog { width: 560px; display: flex; flex-direction: column; max-height: calc(100vh - 60px); position: relative; }
+    /* 右下角拖拽调整尺寸 (V1.7.30): 手柄用斜纹示意可缩放 */
+    .ai-resize-handle {
+      position: absolute;
+      right: 3px;
+      bottom: 3px;
+      width: 16px;
+      height: 16px;
+      cursor: nwse-resize;
+      border-radius: 0 0 8px 0;
+      background: linear-gradient(135deg, transparent 0 40%, #c9c9c9 40% 47%, transparent 47% 57%, #c9c9c9 57% 64%, transparent 64% 74%, #c9c9c9 74% 81%, transparent 81%);
+      opacity: .85;
+    }
+    .ai-resize-handle:hover { opacity: 1; }
+    .ai-title-row { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; cursor: move; }
+    .ai-title-row .share-dialog-title { margin-bottom: 0; flex: 1; }
+    body.dialog-dragging, body.dialog-dragging * { user-select: none !important; }
+    .ai-mini-btn { border: none; background: none; font-size: 12px; color: #999; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit; }
+    .ai-mini-btn:hover { background: #f2f2f2; color: #555; }
+    .ai-chat {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 160px;
+      max-height: calc(100vh - 400px);
+      border: 1px solid #f0f0f0;
+      border-radius: 10px;
+      background: #f7f8fa;
+      padding: 12px 12px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .ai-chat-empty { margin: auto; text-align: center; font-size: 12px; color: #bbb; line-height: 1.6; }
+    .ai-msg { display: flex; gap: 8px; align-items: flex-start; }
+    .ai-msg.me { flex-direction: row-reverse; }
+    .ai-avatar { width: 34px; height: 34px; border-radius: 8px; flex: none; object-fit: cover; background: #fff; }
+    .ai-msg-col { display: flex; flex-direction: column; gap: 3px; max-width: 76%; }
+    .ai-msg.me .ai-msg-col { align-items: flex-end; }
+    .ai-msg-name { font-size: 11px; color: #999; padding: 0 2px; }
+    .ai-bubble {
+      font-size: 13.5px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #eee;
+      color: #181818;
+      user-select: text;
+    }
+    .ai-msg.me .ai-bubble { background: #95ec69; border-color: #7ddb56; }
+    .ai-typing { display: inline-flex; gap: 4px; padding: 2px 0; }
+    .ai-typing i { width: 6px; height: 6px; border-radius: 50%; background: #bbb; animation: aiDot 1.2s infinite; }
+    .ai-typing i:nth-child(2) { animation-delay: .2s; }
+    .ai-typing i:nth-child(3) { animation-delay: .4s; }
+    @keyframes aiDot { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
+    .ai-chat-error { font-size: 12px; color: #e11d48; line-height: 1.5; padding: 6px 2px 0; display: none; }
+    .ai-chips { display: flex; gap: 8px; margin-top: 10px; }
+    .ai-chips:empty { display: none; }
+    .ai-chip {
+      font-size: 12px; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe;
+      border-radius: 999px; padding: 5px 12px; cursor: pointer; font-family: inherit; transition: all .15s;
+    }
+    .ai-chip:hover { background: #dbeafe; }
+    .ai-input-row { display: flex; gap: 10px; margin-top: 10px; align-items: flex-end; }
+    #aiInput {
+      flex: 1; resize: none; font-size: 13px; line-height: 1.5; padding: 8px 10px;
+      border: 1px solid #ddd; border-radius: 8px; outline: none; font-family: inherit;
+      min-height: 52px; max-height: 120px;
+    }
+    #aiInput:focus { border-color: #2563eb; }
+    /* 分析引擎切换 (V1.7.10): 云端 DeepSeek (Pro 专享, 服务端托管) / 自定义模型 (本地/BYOK) */
+    .ai-engine-row { display: flex; gap: 8px; margin: -4px 0 10px; }
+    .ai-engine-btn {
+      flex: 0 0 auto;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid #e5e5e5;
+      background: #fff;
+      color: #888;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .ai-engine-btn:hover { border-color: #c9c9c9; color: #555; }
+    .ai-engine-btn.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; font-weight: 600; }
+    /* AI 自定义模型槽位切换 (V1.7.45): 三个槽位配置在统一设置页, 此处选择实际使用的槽位 */
+    .ai-slot-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .ai-slot-btn {
+      flex: 1; min-width: 0; font-size: 11px; padding: 5px 8px;
+      border: 1px solid #e5e5e5; border-radius: 6px; background: #fff; color: #666;
+      cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all .15s;
+    }
+    .ai-slot-btn:hover { border-color: #c9c9c9; color: #555; }
+    .ai-slot-btn.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; font-weight: 600; }
+    /* 深度思考 = 云端模型的子开关 (V1.7.32): 更小、虚线边框、↳ 前缀, 与主引擎按钮明确分层 */
+    .ai-sub-btn {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-style: dashed;
+      border-color: #c7d2fe;
+      color: #6b7280;
+      background: #fff;
+      margin-left: -2px;
+    }
+    .ai-sub-btn:hover { border-color: #93a9f8; color: #2563eb; }
+    .ai-sub-btn.active {
+      border-style: solid;
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+    }
+    /* 独立 AI 模型配置表单 (V1.7.11): 选自定义引擎时展示, 与翻译引擎槽位分离, 免费用户可用 */
+    .ai-config { margin: -4px 0 10px; padding: 10px 12px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
+    .ai-config-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .ai-config-row:last-of-type { margin-bottom: 6px; }
+    .ai-config-row input {
+      flex: 1; min-width: 0; font-size: 12px; padding: 6px 8px;
+      border: 1px solid #ddd; border-radius: 6px; outline: none; background: #fff;
+    }
+    .ai-config-row input:focus { border-color: #2563eb; }
+    .ai-config-tip { font-size: 11px; color: #999; line-height: 1.6; }
+    .ai-config-tip code { background: #f0f0f0; border-radius: 3px; padding: 0 4px; font-size: 11px; }
+    .vt-anno-editor {
+      position: fixed;
+      display: none;
+      width: 280px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+      padding: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      z-index: 2147483647;
+    }
+    .vt-anno-editor.vt-visible { display: block; }
+    .vt-anno-textarea {
+      width: 100%;
+      height: 72px;
+      box-sizing: border-box;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      font-family: inherit;
+      outline: none;
+    }
+    .vt-anno-textarea:focus { border-color: #faad14; }
+    .vt-anno-editor-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .vt-anno-save, .vt-anno-cancel {
+      border: none;
+      border-radius: 5px;
+      padding: 4px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .vt-anno-save { background: #faad14; color: #fff; }
+    .vt-anno-save:hover { background: #d99a0b; }
+    .vt-anno-cancel { background: #f0f0f0; color: #666; }
+    .vt-anno-cancel:hover { background: #e0e0e0; }
+    .pane-header-hint {
+      margin-left: 8px;
+      color: #bbb;
+      font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1><img src="icons/icon32.png">文档翻译</h1>
+    <div class="topbar-actions">
+      <span class="translate-time" id="translateTime"></span>
+      <select id="srcLang">
+        <option value="en">英语 →</option>
+        <option value="zh-CN">中文 →</option>
+        <option value="auto">自动检测 →</option>
+      </select>
+      <select id="tgtLang">
+        <option value="zh">中文</option>
+        <option value="en">英语</option>
+      </select>
+      <label class="sel-auto-toggle" id="selAutoToggle" style="display:none" title="在原文中选中文字后自动弹出译文；在译文区选中仍用于添加批注">
+        <input type="checkbox" id="selAutoTranslate">选中即译
+      </label>
+      <button class="btn btn-outline" id="backBtn" style="display:none">返回上传</button>
+      <button class="btn btn-outline" id="shareBtn" style="display:none">分享译文</button>
+      <button class="btn btn-outline" id="ttsBtn" style="display:none" title="语音朗读译文（系统内置语音，可再次点击停止）">🔊 朗读译文</button>
+      <button class="btn btn-outline" id="ttsExportBtn" style="display:none" title="用云端 TTS 合成 mp3，可发微信离线听">🎧 导出音频</button>
+      <button class="btn btn-outline" id="aiSummaryBtn" style="display:none" title="AI 文档对话（感知文档内容，可提问可总结）">🤖 AI 分析</button>
+      <button class="btn btn-primary" id="translateBtn" disabled>开始翻译</button>
+    </div>
+  </div>
+
+  <div class="topbar-progress" id="topProgress">
+    <div class="bar"><div class="bar-fill" id="topProgressFill"></div></div>
+    <div class="info">
+      <span id="topProgressText">正在解析...</span>
+      <span id="topProgressPct">0%</span>
+    </div>
+  </div>
+
+  <div class="upload-area" id="uploadArea">
+    <div class="upload-sidebar">
+      <div class="type-item active" id="pdfTypeItem">📄 文档翻译</div>
+      <div class="sidebar-divider"></div>
+      <div class="type-item" id="historyBtn">🕘 历史翻译</div>
+      <div class="type-item" id="cacheHistoryBtn">💾 历史缓存</div>
+      <div class="type-item" id="usageBtn">📊 用量信息</div>
+      <div class="type-item" id="planBtn">💎 权益对比</div>
+      <div class="type-item" id="openSettingsBtn">⚙️ 统一设置</div>
+    </div>
+    <div class="upload-main">
+      <div class="upload-box" id="uploadBox">
+        <div class="icon">📄</div>
+        <div class="title">点击或拖拽上传 PDF 文件</div>
+        <p>支持中英文 PDF 文档，翻译后双语对照显示</p>
+      </div>
+      <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+          <span id="historyTitle">本地历史</span>
+        <div class="history-actions">
+          <button class="btn btn-outline" id="historyCloudBtn">☁ 云端</button>
+          <button class="btn btn-outline" id="historyClearBtn">🗑 清除全部</button>
+        </div>
+        </div>
+        <div class="history-search"><input type="text" id="historySearchInput" placeholder="搜索文件名…"></div>
+        <div id="historyStats" class="history-stats" style="display:none"></div>
+        <div class="history-list" id="historyList"></div>
+        <div id="historyPager"></div>
+      </div>
+      <div class="history-panel" id="cachePanel">
+        <div class="history-header">
+          <span id="cacheTitle">本地历史缓存</span>
+          <div class="history-actions">
+            <button class="btn btn-outline" id="cacheClearBtn">🗑 清除全部</button>
+          </div>
+          </div>
+          <div class="history-search"><input type="text" id="cacheSearchInput" placeholder="搜索原文/译文…"></div>
+          <div class="history-list" id="cacheList"></div>
+          <div id="cachePager"></div>
+      </div>
+       <div class="history-panel" id="usagePanel">
+        <div class="history-header">
+          <span id="usageTitle">用量信息</span>
+          <div class="history-actions">
+      <button type="button" class="usage-range-btn active" data-range="today">今天</button>
+      <button type="button" class="usage-range-btn" data-range="yesterday">昨天</button>
+      <button type="button" class="usage-range-btn" data-range="week">本周</button>
+      <button type="button" class="usage-range-btn" data-range="month">本月</button>
+          </div>
+         </div>
+        <div id="usageStats" class="history-stats"></div>
+      </div>
+      <div class="history-panel" id="planPanel">
+        <div class="history-header">
+          <span>会员权益对比</span>
+          <span class="plan-current" id="planCurrent"></span>
+        </div>
+        <div class="plan-note">✓ 表示该套餐支持；未登录按免费用户计。免费功能永久可用，无需申请任何密钥。</div>
+        <table class="plan-table">
+          <thead>
+            <tr><th>功能</th><th>免费</th><th>Pro</th></tr>
+          </thead>
+          <tbody>
+            <tr class="plan-group"><td colspan="3">以下功能免费永久可用</td></tr>
+            <tr>
+              <td>文档翻译（自带密钥：百度 / 火山 / 腾讯 / 自定义模型）</td>
+              <td class="yes">✓</td><td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>划词翻译 · 字幕翻译 · 双语对照 · 批注</td>
+              <td class="yes">✓</td><td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>分享译文（HTML / 长图）· 本地配音导出</td>
+              <td class="yes">✓</td><td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>AI 文档对话（本地 Ollama / 自定义模型）</td>
+              <td class="yes">✓</td><td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>本地历史与本地缓存（不限条数）</td>
+              <td class="yes">✓</td><td class="yes">✓</td>
+            </tr>
+            <tr class="plan-group"><td colspan="3">Pro 专享（免配置，开箱即用）</td></tr>
+            <tr>
+              <td>官方翻译引擎 · 5 万字/日（≈50 页论文）</td>
+              <td class="no">—</td><td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>云端 AI 分析 · 2 万字符/日（≈20 页深度问答）</td>
+              <td class="no">—</td><td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>官方语音合成 · 2000 字符/日（≈7 分钟音频）</td>
+              <td class="no">—</td><td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>云端历史同步与云端缓存</td>
+              <td class="quota">30 条 · 50MB</td><td class="quota">300 条 · 200MB</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="plan-price">
+          <div class="plan-price-head">
+            <span class="plan-price-amount">¥19.9</span>
+            <span class="plan-price-unit">/ 月</span>
+          </div>
+          <div class="plan-price-sub">年付 ¥199（≈¥16.6/月，省 17%）</div>
+          <ul class="plan-price-list">
+            <li>三档日额度全开，超出后次日 0 点恢复</li>
+            <li>重度使用可加购：¥10 / 100 万字符（按需购买，不过期）</li>
+            <li>新用户首月 ¥9.9，到期不自动续费</li>
+          </ul>
+          <button class="btn primary plan-buy" id="planBuyBtn">升级 Pro</button>
+        </div>
+        <div class="plan-foot">每日额度北京时间 0 点重置；用量可在「📊 用量信息」查看。<br>文档仅在本机解析；云端仅在使用 Pro 功能时按需发送文本，不用于训练。7 天无理由退款。</div>
+      </div>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf">
+  </div>
+
+  <div class="doc-view" id="docView"></div>
+  <div class="vt-anno-rail" id="vtAnnoRail"></div>
+
+  <!-- 分享译文弹窗: 内容模式 (双语对照 / 仅译文) + 分享方式 (HTML 文件 / 图片) + 是否附带批注 -->
+  <div class="share-dialog-mask" id="shareDialog">
+    <div class="share-dialog">
+      <div class="dialog-title-row">
+        <div class="share-dialog-title">分享译文</div>
+        <button type="button" class="dialog-close" id="shareCloseBtn" title="关闭">✕</button>
+      </div>
+      <div class="share-dialog-row">
+        <span class="share-dialog-label">内容</span>
+        <label class="share-opt"><input type="radio" name="shareMode" value="bilingual" checked>双语对照</label>
+        <label class="share-opt"><input type="radio" name="shareMode" value="translated">仅译文</label>
+      </div>
+      <div class="share-dialog-row">
+        <span class="share-dialog-label">方式</span>
+        <label class="share-opt"><input type="radio" name="shareWay" value="html" checked>HTML 文件</label>
+        <label class="share-opt"><input type="radio" name="shareWay" value="image">图片</label>
+      </div>
+      <div class="share-dialog-row" id="shareAnnoRow">
+        <span class="share-dialog-label"></span>
+        <label class="share-opt"><input type="checkbox" id="shareAnno">附带我的批注（<span id="shareAnnoCount">0</span> 条）</label>
+      </div>
+      <div class="share-dialog-tip" id="shareTip">生成自包含 HTML 文件，发给对方即可在浏览器直接阅读，无需服务器。</div>
+      <div class="share-dialog-actions">
+        <button class="btn btn-primary" id="shareGenBtn">生成并下载</button>
+        <button class="btn btn-outline" id="shareCancelBtn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 对话弹窗 (V1.7.12, 微信式): 感知文档内容的多轮对话; 左=机器人(品牌头像+模型名) 右=小T(插件头像) -->
+  <div class="share-dialog-mask" id="aiDialog">
+    <div class="share-dialog ai-dialog">
+      <div class="ai-title-row" id="aiTitleRow">
+        <div class="share-dialog-title">AI 文档对话</div>
+        <button type="button" class="ai-mini-btn" id="aiClearBtn" title="清空当前文档的对话记录">清空对话</button>
+        <button type="button" class="ai-mini-btn" id="aiCloseBtn2" title="关闭">✕</button>
+      </div>
+      <div class="ai-engine-row">
+    <button type="button" class="ai-engine-btn active" id="aiEngineCloud">☁️ 云端模型</button>
+    <button type="button" class="ai-engine-btn ai-sub-btn" id="aiThinkBtn" title="云端模型专属子开关：开启后模型先推理再作答，复杂问题更准但更慢、更耗 token">↳ 深度思考</button>
+    <button type="button" class="ai-engine-btn" id="aiEngineCustom">🏠 自定义模型</button>
+      </div>
+    <div class="ai-config" id="aiConfig" style="display:none">
+      <div class="ai-slot-row" id="aiSlotRow"></div>
+      <div class="ai-config-tip" id="aiConfigTip">自定义模型 1~3 槽位在「⚙️ 统一设置」维护（OpenAI 兼容接口，独立于翻译引擎）；此处切换实际使用的槽位。</div>
+      <div class="ai-config-row">
+        <button type="button" class="btn btn-outline" id="aiOpenSettingsBtn" style="font-size:12px;padding:4px 12px">⚙️ 去设置 AI 模型</button>
+      </div>
+    </div>
+      <div class="ai-chat" id="aiChatList"></div>
+      <div class="ai-chat-error" id="aiChatError"></div>
+      <div class="ai-chips" id="aiChips"></div>
+      <div class="ai-input-row">
+        <textarea id="aiInput" rows="2" maxlength="8000" placeholder="问问这篇文档…（Enter 发送，Shift+Enter 换行）"></textarea>
+        <button class="btn btn-primary" id="aiSendBtn">发送</button>
+      </div>
+      <div class="ai-resize-handle" id="aiResizeHandle" title="拖动调整窗口大小"></div>
+    </div>
+  </div>
+
+  <!-- 导出朗读音频 (V1.7.35): 云端 TTS (OpenAI 兼容 /audio/speech) 合成 mp3, 可发微信离线听 -->
+  <div class="share-dialog-mask" id="ttsDialog">
+    <div class="share-dialog">
+      <div class="dialog-title-row">
+        <div class="share-dialog-title">导出朗读音频（mp3）</div>
+        <button type="button" class="dialog-close" id="ttsCloseBtn" title="关闭">✕</button>
+      </div>
+      <div class="share-dialog-row">
+        <span class="share-dialog-label">来源</span>
+        <div class="tts-modes">
+          <button type="button" class="tts-mode active" id="ttsModeServer">官方引擎（Pro）</button>
+          <button type="button" class="tts-mode" id="ttsModeBaidu">百度（自带密钥）</button>
+          <button type="button" class="tts-mode" id="ttsModeCustom">自定义接口</button>
+        </div>
+      </div>
+      <!-- V1.7.41: 语音合成的密钥/接口配置统一到设置页, 此处仅保留来源切换 -->
+      <div class="share-dialog-tip" id="ttsTip">按目标语言逐段合成后拼接为一个 mp3，可直接发微信；长文档会分多次请求。</div>
+      <div class="share-dialog-actions">
+        <button class="btn btn-outline" id="ttsOpenSettingsBtn">⚙️ 配置语音引擎</button>
+        <span style="flex:1"></span>
+        <button class="btn btn-outline" id="ttsCancelBtn">取消</button>
+        <button class="btn btn-primary" id="ttsGenBtn">生成并下载</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="doc-translate.js"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "小T翻译",
+  "version": "1.7.84",
+  "description": "学术PDF翻译：官方引擎(Pro)免配置直译，AI文档对话(云端DeepSeek Pro/本地模型免费)，划词翻译、双语对照、本地缓存复用，支持百度/火山/腾讯/自定义模型",
+  "permissions": ["storage", "activeTab", "tabs", "webRequest", "offscreen", "clipboardRead"],
+  "host_permissions": ["<all_urls>"],
+  "commands": {
+    "translate-clipboard-selection": {
+      "suggested_key": { "default": "Alt+T" },
+      "description": "翻译选中文本（PDF 阅读器内：选中 → Ctrl+C → Alt+T）"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*", "file://*/*"],
+    "js": ["content.js"],
+    "css": ["content.css"],
+    "run_at": "document_idle",
+    "all_frames": true
+  }],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [{
+    "resources": ["lib/pdf.worker.min.js"],
+    "matches": ["<all_urls>"]
+  }]
+}

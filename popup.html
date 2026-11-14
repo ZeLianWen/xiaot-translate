@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      width:300px;
+      font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','PingFang SC','Microsoft YaHei',sans-serif;
+      background:#f6f6f6;
+      color:#181818;
+      padding:0;
+      overflow:hidden;
+    }
+    .header{
+      background:#ededed;
+      padding:16px 14px 12px;
+      text-align:center;
+      border-bottom:1px solid #d9d9d9;
+    }
+    .header h2{
+      font-size:17px;
+      color:#181818;
+      font-weight:500;
+    }
+    .header h2 img{vertical-align:middle;margin-right:5px;width:22px;height:22px}
+    .body{padding:12px 14px 14px;background:#f6f6f6}
+    /* 未登录提示 (V1.7.81): 全部功能需邮箱注册 */
+    .login-notice{
+      background:#fff7e6;
+      border:1px solid #ffe0a3;
+      border-radius:8px;
+      padding:10px 12px;
+      margin-bottom:10px;
+      font-size:11px;
+      line-height:1.6;
+      color:#a86b00;
+    }
+    .card{
+      background:#fff;
+      border:none;
+      border-radius:8px;
+      padding:12px 14px;
+      margin-bottom:10px;
+    }
+    .section-title{
+      font-size:13px;
+      color:#181818;
+      margin-bottom:8px;
+      font-weight:500;
+    }
+    .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .row:last-child{margin-bottom:0}
+    .row label{font-size:15px;color:#181818}
+    select{
+      padding:6px 10px;
+      border:1px solid #e5e5e5;
+      border-radius:6px;
+      background:#f7f7f7;
+      color:#181818;
+      font-size:13px;
+      width:140px;
+      outline:none;
+      transition:border .2s;
+    }
+    select:focus{border-color:#07c160}
+    select option{background:#fff;color:#181818}
+    select option:checked{background:#07c160;color:#fff}
+    .backend-config{display:none;margin-top:6px}
+    .backend-config input{
+      width:100%;
+      padding:7px 10px;
+      border:1px solid #e5e5e5;
+      border-radius:6px;
+      background:#f7f7f7;
+      color:#181818;
+      font-size:12px;
+      margin-bottom:4px;
+      font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+      outline:none;
+      transition:border .2s;
+    }
+    .backend-config input:focus{border-color:#07c160}
+    .backend-config input:-webkit-autofill,
+    .backend-config input:-webkit-autofill:hover,
+    .backend-config input:-webkit-autofill:focus{
+      -webkit-text-fill-color:#181818;
+      -webkit-box-shadow:0 0 0 1000px #f7f7f7 inset;
+      box-shadow:0 0 0 1000px #f7f7f7 inset;
+      transition:background-color 9999s ease-out;
+    }
+    .backend-config input::placeholder{color:#b2b2b2}
+    .backend-config .help{font-size:10px;color:#b2b2b2;margin-top:2px}
+.custom-slots{display:flex;gap:6px;margin-bottom:6px}
+.slot-btn{
+  flex:1;padding:5px 0;font-size:11px;border:1px solid #e5e5e5;border-radius:6px;
+  background:#f7f7f7;color:#666;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.slot-btn.active{background:#07c160;border-color:#07c160;color:#fff;font-weight:600}
+    .doc-btn{
+      display:flex;align-items:center;justify-content:space-between;
+      width:100%;padding:14px;
+      border:none;border-radius:8px;
+      background:#fff;
+      color:#181818;
+      font-size:15px;font-weight:500;cursor:pointer;
+      transition:background .15s;
+      font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','PingFang SC',sans-serif;
+      margin-bottom:8px;
+    }
+    .doc-btn:hover{background:#f0f0f0}
+    .doc-btn .btn-icon{font-size:18px;margin-right:8px}
+    .doc-btn .btn-arrow{color:#b2b2b2;font-size:14px}
+    .doc-btn .btn-left{display:flex;align-items:center}
+    .mini-btn{
+      flex:1;padding:8px 10px;
+      border:1px solid #e5e5e5;border-radius:6px;
+      background:#f7f7f7;color:#666;
+      font-size:12px;cursor:pointer;
+      transition:all .15s;
+      font-family:inherit;
+    }
+    .mini-btn:hover{border-color:#07c160;color:#07c160;background:#f0fdf4}
+    #authLoggedOut input,
+    #authChangePwdBox input{
+      width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:6px;
+      background:#f7f7f7;color:#181818;font-size:12px;margin-bottom:6px;
+      font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+      outline:none;transition:border .2s;
+    }
+    #authLoggedOut input:focus,
+    #authChangePwdBox input:focus{border-color:#07c160}
+    #authLoggedOut input::placeholder,
+    #authChangePwdBox input::placeholder{color:#b2b2b2}
+    .auth-actions{display:flex;gap:8px}
+    .auth-links{margin-top:6px;text-align:right}
+    .link-btn{background:none;border:none;padding:0;color:#07c160;font-size:11px;cursor:pointer;font-family:inherit}
+    .link-btn:hover{text-decoration:underline}
+  /* 统一设置入口 (V1.7.39, V1.7.55): 并入账户区下方, 去掉大段空白 */
+  .settings-entry{margin-top:0;padding-top:0;border-top:none;text-align:center}
+  .settings-entry .link-btn{
+    display:block;width:100%;padding:11px 0;
+    background:#fff;border-radius:8px;font-size:13px;
+  }
+  .settings-entry .link-btn:hover{background:#f0fdf4;text-decoration:none}
+    #authChangePwdBox{margin-top:8px}
+    .auth-status{font-size:11px;color:#b2b2b2;margin-top:6px;min-height:14px;line-height:1.4}
+    .auth-status.ok{color:#07c160}
+    .auth-status.err{color:#e64340}
+.auth-user{display:flex;align-items:center;font-size:12px;color:#181818;margin-bottom:4px;word-break:break-all}
+.auth-dot{width:8px;height:8px;border-radius:50%;background:#07c160;margin-right:6px;flex-shrink:0}
+.auth-plan{font-size:11px;color:#888;margin-bottom:8px}
+    .mini-btn:disabled{opacity:.5;cursor:default}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2><img src="icons/icon32.png">小T翻译</h2>
+  </div>
+  <div class="body">
+    <div class="login-notice" id="loginNotice" style="display:none">注册 / 登录后即可使用全部功能（邮箱注册，免费）。</div>
+    <div class="card feature-only">
+      <div class="row">
+        <label>翻译引擎</label>
+        <select id="backend">
+          <option value="proxy">👑 官方引擎（Pro 专享）</option>
+          <option value="baidu">🔵 百度翻译</option>
+          <option value="volcengine">🌋 火山翻译</option>
+          <option value="tencent">🟢 腾讯翻译</option>
+          <option value="custom">🤖 自定义模型</option>
+        </select>
+      </div>
+      <!-- V1.7.42: 自定义槽位在 popup 选择（设置页只维护槽位配置） -->
+      <div id="customSlotRow" style="display:none">
+        <div class="help" style="font-size:10px;color:#b2b2b2;margin:2px 0 4px">自定义槽位（实际使用哪个模型在这里切换）</div>
+        <div class="custom-slots" id="customSlots"></div>
+      </div>
+      <div class="backend-config" id="proxyConfig">
+        <div class="help">Pro 专享 · 免配置免密钥即用 · 服务端 AI 翻译（DeepSeek，免密钥） · 每日 5 万字符（北京时间 0 点重置）· 需登录且 Pro 生效</div>
+      </div>
+      <!-- V1.7.41: 各引擎密钥表单已迁移到统一设置页, 这里只保留引擎快速切换 -->
+      <div class="backend-config" id="configMovedHint">
+        <div class="help">各引擎的密钥/接口配置已统一到「⚙️ 统一设置」页面维护，此处仅切换当前使用的引擎。</div>
+      </div>
+    </div>
+
+    <button class="doc-btn feature-only" id="translateCurrentBtn">
+      <span class="btn-left"><span class="btn-icon">🌐</span>翻译当前PDF</span>
+      <span class="btn-arrow">›</span>
+    </button>
+    <button class="doc-btn feature-only" id="docTranslateBtn">
+      <span class="btn-left"><span class="btn-icon">📄</span>文档翻译</span>
+      <span class="btn-arrow">›</span>
+    </button>
+    <div class="card">
+      <div class="section-title">账户</div>
+      <div id="authLoggedOut">
+        <div id="authLoginBox">
+          <input type="email" id="authEmail" placeholder="邮箱">
+          <input type="password" id="authPassword" placeholder="密码（至少 6 位）">
+          <div class="auth-actions">
+            <button class="mini-btn" id="authSignInBtn">登录</button>
+            <button class="mini-btn" id="authSignUpBtn">注册</button>
+          </div>
+          <div class="auth-links"><button type="button" class="link-btn" id="authForgotBtn">忘记密码？</button></div>
+        </div>
+        <div id="authResetBox" style="display:none">
+          <input type="email" id="authResetEmail" placeholder="注册邮箱">
+          <div class="auth-actions">
+            <button class="mini-btn" id="authResetSendBtn">发送重置邮件</button>
+          </div>
+          <input type="text" id="authResetCode" placeholder="验证码或重置链接（粘贴）">
+          <div class="help">邮件含 6 位验证码 → 直接填入；含「Reset password」链接 → 右键复制链接地址粘贴（链接一次性有效）</div>
+          <input type="password" id="authResetPassword" placeholder="新密码（至少 6 位）">
+          <div class="auth-actions">
+            <button class="mini-btn" id="authResetConfirmBtn">重置密码并登录</button>
+          </div>
+          <div class="auth-links"><button type="button" class="link-btn" id="authResetBackBtn">返回登录</button></div>
+        </div>
+        <div class="auth-status" id="authStatus"></div>
+      </div>
+      <div id="authLoggedIn" style="display:none">
+        <div class="auth-user"><span class="auth-dot"></span><span id="authUserEmail"></span></div>
+        <div class="auth-plan" id="authPlan"></div>
+        <div class="auth-actions">
+          <button class="mini-btn" id="authChangePwdBtn">修改密码</button>
+          <button class="mini-btn" id="authSignOutBtn">退出登录</button>
+        </div>
+        <div id="authChangePwdBox" style="display:none">
+          <input type="password" id="authNewPwd" placeholder="新密码（至少 6 位）">
+          <input type="password" id="authNewPwd2" placeholder="确认新密码">
+          <div class="auth-actions">
+            <button class="mini-btn" id="authChangePwdConfirmBtn">确认修改</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-entry">
+      <button type="button" class="link-btn" id="openSettingsBtn">⚙️ 统一设置（翻译 / AI / 语音）</button>
+    </div>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
+

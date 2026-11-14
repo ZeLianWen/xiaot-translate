@@ -1,0 +1,21 @@
+﻿.superpowers
+.wrangler/
+dist/
+build/
+
+supabase/.temp/
+supabase/supabase/
+
+# 凭据/密钥（禁止入库）
+.env
+.env.*
+*.pem
+*.key
+node_modules/
+
+# 云端后端不开源：cloud/ 与 supabase/ 为独立私有仓库（勿提交到本仓库）
+cloud/
+supabase/
+
+# 内部功能文档不入公开仓库
+功能文档.md

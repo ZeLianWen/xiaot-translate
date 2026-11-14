@@ -1,0 +1,13 @@
+{
+  "name": "chrome-plugin-translator",
+  "private": true,
+  "description": "小T翻译 Chrome 扩展 (MV3, 原生 JS 无构建, 无运行时依赖)",
+  "scripts": {
+    "test": "node --test",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0"
+  }
+}

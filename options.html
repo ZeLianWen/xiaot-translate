@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>小T翻译 · 统一设置 · 模型配置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="wrap">
+    <h1>统一设置</h1>
+    <div class="sub">配置存本机，不上传。保存后立即对现有功能生效。</div>
+
+    <!-- 子页面导航: 每个子页面独立成页, 当前页用 .active 标记 -->
+    <nav class="tabs">
+      <a class="tab active" href="options.html">模型配置</a>
+      <a class="tab" href="options-profile.html">个人信息</a>
+    </nav>
+
+    <div class="page-head">
+      <h2>模型配置</h2>
+      <p>翻译引擎、AI 分析、语音合成的密钥与接口都集中在这一页，实际使用哪个引擎/来源在对应功能界面选择。</p>
+    </div>
+
+    <!-- 翻译引擎 -->
+    <div class="card">
+      <h2>翻译引擎 <span class="badge" id="trBadge">待配置</span></h2>
+      <div class="desc">这里只维护各引擎的密钥/接口；实际使用哪个引擎在插件弹窗「翻译引擎」中选择。</div>
+      <div class="field">
+        <label for="trBackend">引擎</label>
+        <select id="trBackend">
+          <option value="proxy">官方引擎（Pro，免配置）</option>
+          <option value="baidu">百度（APPID + 密钥）</option>
+          <option value="volcengine">火山引擎（AK + SK）</option>
+          <option value="tencent">腾讯（SecretId + SecretKey）</option>
+          <option value="custom">自定义模型（OpenAI 兼容）</option>
+        </select>
+      </div>
+      <div class="hint">仅切换下方要编辑/测试的引擎配置，保存不会改变正在使用的引擎。</div>
+      <div id="trBaiduBox">
+        <div class="field"><label for="trBaiduAppId">APPID</label><input type="text" id="trBaiduAppId" spellcheck="false"></div>
+        <div class="field"><label for="trBaiduKey">密钥</label><input type="password" id="trBaiduKey" spellcheck="false"></div>
+      </div>
+      <div id="trVolcBox" class="hidden">
+        <div class="field"><label for="trVolcAk">Access Key</label><input type="text" id="trVolcAk" spellcheck="false"></div>
+        <div class="field"><label for="trVolcSk">Secret Key</label><input type="password" id="trVolcSk" spellcheck="false"></div>
+      </div>
+      <div id="trTencentBox" class="hidden">
+        <div class="field"><label for="trTencentSid">SecretId</label><input type="text" id="trTencentSid" spellcheck="false"></div>
+        <div class="field"><label for="trTencentSkey">SecretKey</label><input type="password" id="trTencentSkey" spellcheck="false"></div>
+      </div>
+      <div id="trCustomBox" class="hidden">
+        <div class="slots" id="trSlots"></div>
+        <div class="hint">最多 3 个槽位，各自独立保存；实际使用哪个槽位在插件弹窗中选择（上限 500~200000 字节，留空用默认）。</div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="trSave">保存</button>
+        <button class="btn" id="trTest">测试翻译</button>
+        <span class="status" id="trStatus"></span>
+      </div>
+    </div>
+
+    <!-- AI 分析 -->
+    <div class="card">
+      <h2>AI 分析 <span class="badge" id="aiBadge">待配置</span></h2>
+      <div class="desc">这里只维护自定义模型的接口；实际使用云端模型还是自定义模型，在「🤖 AI 分析」窗口中选择。云端模型（Pro）免配置。</div>
+      <div class="field">
+        <label for="aiEngine">引擎</label>
+        <select id="aiEngine">
+          <option value="cloud">云端模型（Pro，免配置）</option>
+          <option value="custom">自定义模型（自带密钥）</option>
+        </select>
+      </div>
+      <div class="hint">仅切换下方要编辑/测试的配置，保存不会改变正在使用的分析引擎。</div>
+      <div id="aiCustomBox">
+        <div class="slots" id="aiSlots"></div>
+        <div class="hint">最多 3 个槽位，各自独立保存；实际使用哪个槽位在「🤖 AI 分析」窗口中选择（上限 500~200000 字节，留空用默认）。</div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="aiSave">保存</button>
+        <button class="btn" id="aiTest">测试对话</button>
+        <span class="status" id="aiStatus"></span>
+      </div>
+    </div>
+
+    <!-- 语音合成 -->
+    <div class="card">
+      <h2>语音合成 <span class="badge" id="ttsBadge">待配置</span></h2>
+      <div class="desc">这里只维护百度/自定义接口的密钥；实际使用哪种来源，在「🎧 导出音频」窗口中选择。官方引擎（Pro）免配置。</div>
+      <div class="field">
+        <label for="ttsMode">来源</label>
+        <select id="ttsMode">
+          <option value="server">官方引擎（Pro，免配置）</option>
+          <option value="baidu">百度（自带密钥）</option>
+          <option value="custom">自定义接口</option>
+        </select>
+      </div>
+      <div class="hint">所选来源即语音合成实际使用的来源——保存后导出音频、测试合成即时生效；也可在导出音频弹窗内临时切换。</div>
+      <div id="ttsBaiduBox" class="hidden">
+        <div class="field"><label for="ttsBaiduAk">API Key</label><input type="text" id="ttsBaiduAk" spellcheck="false"></div>
+        <div class="field"><label for="ttsBaiduSk">Secret Key</label><input type="password" id="ttsBaiduSk" spellcheck="false"></div>
+        <div class="field"><label for="ttsBaiduVoice">音色</label><select id="ttsBaiduVoice"></select></div>
+        <div class="field hidden" id="ttsBaiduVoiceCustomField"><label for="ttsBaiduVoiceCustom">自定义音色</label><input type="text" id="ttsBaiduVoiceCustom" placeholder="填入百度音色编号（如 110）" spellcheck="false"></div>
+        <div class="field"><label for="ttsBaiduSpeed">语速</label><select id="ttsBaiduSpeed"></select></div>
+      </div>
+      <div id="ttsCustomBox" class="hidden">
+        <div class="field"><label for="ttsEndpoint">接口地址</label><input type="text" id="ttsEndpoint" placeholder="https://api.openai.com/v1/audio/speech" spellcheck="false"></div>
+        <div class="field"><label for="ttsApiKey">API Key</label><input type="password" id="ttsApiKey" spellcheck="false"></div>
+        <div class="field"><label for="ttsModel">模型</label><input type="text" id="ttsModel" placeholder="tts-1" spellcheck="false"></div>
+        <div class="field"><label for="ttsVoice">音色</label><select id="ttsVoice"></select></div>
+        <div class="field hidden" id="ttsVoiceCustomField"><label for="ttsVoiceCustom">自定义音色</label><input type="text" id="ttsVoiceCustom" placeholder="填入服务商支持的音色名" spellcheck="false"></div>
+        <div class="field"><label>&nbsp;</label><button type="button" class="btn" id="ttsFillCosy" title="填入本地 CosyVoice2-0.5B 服务预设（需先启动本地 CosyVoice2 服务）">填入本地 CosyVoice2</button></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="ttsSave">保存</button>
+        <button class="btn" id="ttsTest">测试合成</button>
+        <span class="status" id="ttsStatus"></span>
+      </div>
+    </div>
+
+    <div class="foot" id="saveState">配置修改后自动保存（仅本机）；密钥不上传服务器。</div>
+  </div>
+  <script type="module" src="options.js"></script>
+</body>
+</html>
