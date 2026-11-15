@@ -55,7 +55,30 @@ The extension ships with several translation engines. You only need to enter the
 
 Tips: the free Baidu plan has a request-rate limit, so long documents take a little longer — this is normal. Keys are stored only on your device and are never uploaded.
 
-If your provider offers an OpenAI-compatible API, choose **Custom model** instead and fill in the endpoint, API key, and model name — no separate integration is needed.
+If your provider offers an OpenAI-compatible API, choose **Custom model** instead — no separate integration is needed. See [Using a custom translation model](#using-a-custom-translation-model-openai-compatible) below.
+
+### Using a custom translation model (OpenAI-compatible)
+
+Any service exposing an OpenAI-compatible `/chat/completions` endpoint can serve as the translation engine, including locally deployed models via Ollama, llama.cpp, or vLLM.
+
+1. **Pick the engine** — on the unified settings page, under **Translation engine**, choose **Custom model (OpenAI-compatible)**. You can configure up to 3 slots, each saved independently; one slot is also fine.
+2. **Fill in a slot** — each slot has four fields:
+   - **Endpoint**: up to the `/v1` level (e.g. `https://api.example.com/v1`); the extension appends `/chat/completions` automatically. For local Ollama, use `http://localhost:11434/v1`.
+   - **API key**: your provider's key; leave empty for local services.
+   - **Model name**: e.g. `deepseek-chat`, or an Ollama model like `llama3`.
+   - **Byte limit**: 500–200000, controls how long documents are chunked; leave empty for the default.
+3. **Check it works** — each slot has its own **Test** button; **Test translation** at the bottom translates a sample sentence with the slot being edited.
+4. **Start using it** — select **Custom model** as the translation engine in the popup (slots are switched there too). PDF translation and select-to-translate will now use it.
+
+Tips: the extension sends the full translation instruction (including the target language) automatically, so both general chat models and dedicated translation models work. Local Ollama must be started with the environment variable `OLLAMA_ORIGINS=chrome-extension://*`, otherwise the extension's cross-origin request is rejected (the extension shows a 403 hint).
+
+### Using a custom AI analysis model
+
+AI document chat and full-text analysis/summary work with any OpenAI-compatible `/chat/completions` endpoint; the cloud model (Pro) needs no configuration.
+
+1. **Fill in the settings** — on the unified settings page, under **AI analysis**, choose **Custom model (own keys)**. Up to 3 slots (endpoint / API key / model name / byte limit), each with its own **Test** button; **Test chat** at the bottom sends a sample message.
+2. **Switch engines** — choose cloud or custom in the **🤖 AI analysis** window on the document translation page. Free/not-logged-in users automatically use the custom model.
+3. **Tune the context** — the byte limit also caps how much document context is sent to the model (40000 characters by default, 60000 at most). For local models on small GPUs, lower it to match the model's context window and avoid errors on long documents.
 
 ### Using Baidu text-to-speech
 
@@ -67,6 +90,20 @@ The **🎧 Export audio** feature turns translated text into an MP3 you can list
 4. **Export audio** — open the document translation page. After the translation is ready, click **🎧 Export audio**, choose **Baidu (own keys)** in the dialog, and click **Generate and download** to get the MP3.
 
 Tips: long documents are synthesized paragraph by paragraph and merged into one file, so give it a moment. You can also switch to **Custom endpoint** in the dialog to use any other OpenAI-compatible speech service.
+
+### Using a custom TTS endpoint
+
+Speech synthesis works with any OpenAI-compatible `/audio/speech` endpoint.
+
+1. **Pick the source** — on the unified settings page, under **Speech synthesis**, set the source to **Custom endpoint**. The source selected here is what audio export actually uses; you can also switch it temporarily in the export dialog.
+2. **Fill in the settings** — four fields:
+   - **Endpoint**: the full URL, e.g. `https://api.openai.com/v1/audio/speech`; local `127.0.0.1` / `localhost` endpoints need no API key.
+   - **API key**: your provider's key; leave empty for local services.
+   - **Model name**: e.g. `tts-1`, per your provider.
+   - **Voice**: pick a standard OpenAI voice (alloy / echo / fable / onyx / nova / shimmer) from the dropdown, or choose **Custom…** and enter a voice name your provider supports.
+3. **Check it works** — click **Test synthesis** and listen to the sample.
+
+Tips: the request body follows the OpenAI standard shape (`model` / `input` / `voice` / `response_format: mp3`); long documents are synthesized paragraph by paragraph and merged into one MP3.
 
 ### Using a local CosyVoice2 server
 
